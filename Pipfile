@@ -1,0 +1,7 @@
+[packages]
+biolm-utils = {file = "../biolm_utils", editable = true}
+
+[dev-packages]
+debugpy = "*"
+tensorboard = "*"
+torch-tb-profiler = "*"

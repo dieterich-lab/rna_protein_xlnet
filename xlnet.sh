@@ -6,7 +6,7 @@ export CUDA_VISIBLE_DEVICES=4
 
 DEBUG=false
 WAIT=false
-PROG="saluki.py"
+PROG="xlnet.py"
 
 POSITIONAL=()
 while [ $# -gt 0 ]; do

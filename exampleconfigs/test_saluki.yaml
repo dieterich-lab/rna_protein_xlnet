@@ -49,7 +49,6 @@ tokenization:
 #
 # The following are detailed settings for the training/fine-tuning mode. 
 #
-# model: saluki
 data pre-processing (RNA):
   centertoken: False # either False or a token/character on which the sequence will be centered
   nomarkers: False
