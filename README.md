@@ -1,6 +1,6 @@
 # `rna_protein_xlnet`: A plugin to run bioinformatical Language Models.
 
-This projects implements pre-training and fine-tuning of the [XLNET language model](https://arxiv.org/abs/1906.08237) for regressing half lives of RNA and protein sequences. In addition, it supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyse importance scores of individual inputs.
+This projects implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for regressing half lives of RNA and protein sequences. In addition, it supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyse importance scores of individual inputs.
 
 In detail, the following steps are implemented:
 
