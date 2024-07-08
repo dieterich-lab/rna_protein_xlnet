@@ -6,14 +6,14 @@ from transformers import (
     XLNetTokenizerFast,
 )
 
-from rna_xlnet_dataset import RNAXLNETDataset
+# from rna_xlnet_dataset import RNAXLNETDataset
 from rna_xlnet_models import RNA_XLNetForSequenceClassification, RNA_XLNetLMHeadModel
 
 params = [
     RNA_XLNetLMHeadModel,  # 0
     RNA_XLNetForSequenceClassification,  # 1
     XLNetTokenizerFast,  # 2
-    RNAXLNETDataset,  # 3
+    # RNAXLNETDataset,  # 3
     1e-5,  # 4
     1.0,  # 5
     0.0,  # 6
