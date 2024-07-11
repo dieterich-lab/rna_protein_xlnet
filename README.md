@@ -16,8 +16,8 @@ First clone the repo and cd into it. Then, we recommend to create a dedicated en
 ```bash
 git clone https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
-python3 -m venv biolm_xlnet 
-. biolm/biolm_xlnet/activate
+python3 -m venv ~/.venvs/biolm_xlnet # or any other choice of directory
+. ~/.venvs/biolm_xlnet/bin/activate # or the directory of your choice
 pip install pipenv
 pipenv install
 ```
@@ -28,7 +28,6 @@ pipenv install
 ├── exampleconfigs # exampleconfigs to work with
 ├── Pipfile # installation file
 ├── README.md
-├── rna_xlnet_dataset.py # Implementation of the `RNABaseDataset`, espcially implementing the `__getitem__()` method.
 ├── rna_xlnet_models.py # Implementation of the models, espcially implementing the `getconfig()` method.
 ├── xlnet.py # Main script importing the `run()` function from `biolm_utils` and declaration of the model/data/training configuration.
 ```
