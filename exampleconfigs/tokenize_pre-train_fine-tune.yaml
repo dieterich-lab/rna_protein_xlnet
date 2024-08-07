@@ -13,10 +13,8 @@ tokenizing and pre-training data source:
   stripheader: False # if the custom data file has a header that has to be stripped
   columnsep: "\t" # could be "," "|", "\t" ...
   tokensep: ","
-  specifiersep: None
   idpos: 1 # position of the identifier of the column 
   seqpos: 1 # position of the sequence column 
-  pretrainedmodel: None # if the tokenizer for pre-training diverts from the chosen data.
 
 #
 # Description of the fine-tuning source
@@ -26,13 +24,11 @@ fine-tuning data source:
   stripheader: False # if the custom data file has a header that has to be stripped
   columnsep: "\t" # could be "," "|", "\t" ...
   tokensep: ","
-  specifiersep: None
   idpos: 1 # position of the identifier of the column 
   seqpos: 1 # position of the sequence column 
   labelpos: 1 # position of the label column 
   weightpos: None # position of the column containing quality labels 
   splitpos: 1 # position of the split identifier for cross validaton
-  pretrainedmodel: None # if the pre-trained model diverts from the chosen data.
 
 #
 # If you want to tokenize, you only need to specify the following.
@@ -42,9 +38,8 @@ tokenization:
   vocabsize: 20_000
   minfreq: 2
   atomicreplacements: None # dictionary of replacements, i.e. `{"a": "A", "bcd": "xyz"}
-  bpe:
-    maxtokenlength: 10
-  encoding: atomic # [bpe, atomic]
+  maxtokenlength: 10
+  encoding: bpe # DO NOT CHANGE. This is the default encoding for our XLNET models.
 
 #
 # The following are detailed settings for the training/fine-tuning mode. 
@@ -58,7 +53,7 @@ settings:
     general:
       batchsize: 8
       gradacc: 4
-      blocksize: 512
+      blocksize: 512 # DO NOT CHANGE. This is the default sequence length for our language models.
       nepochs: 10
       patience: 3
       resume: False # for resuming training
