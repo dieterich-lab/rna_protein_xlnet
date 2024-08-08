@@ -28,7 +28,7 @@ pipenv install
 ├── exampleconfigs # exampleconfigs to work with
 ├── Pipfile # installation file
 ├── README.md
-├── rna_xlnet_models.py # Implementation of the model, espcially implementing the `getconfig()` method.
+├── xlnet_model.py # Implementation of the model, espcially implementing the `getconfig()` method.
 ├── xlnet.py # Main script importing the `run()` function from `biolm_utils` and declaration of the model/data/training configuration.
 ```
 
@@ -118,14 +118,13 @@ predictions
 looscores
 ├── dataset.json  # saved dataset for quicker load when run multiple times (can be deleted)
 ├── logs # log folder
-├── loo_scores_replace.csv # the .csv file containing the results (in this case for each replacment). Header is `sequence,token,replacement,label,pred,start_offset,end_offset,loo`
-└── loo_scores_replace.pkl # same as above, but as `shap.Explanation` object for easier analysis with the `shap` library.
+├── loo_scores_remove.csv # the .csv file containing the results (in this case for each replacment). Header is `sequence,token,label,pred,start_offset,end_offset,loo`
+└── loo_scores_remove.pkl # same as above, but as `shap.Explanation` object for easier analysis with the `shap` library.
 ```
 
 The header of the `loo_scores_{handletokens}.csv` can be read as follows:
 - `sequence`: The sequence id / identifier
-- `token`: the actual token (for `remove` it was deleted from the sequence, for `mask` it's one-hot encoding was set to zero, for `replace` it was replaced with the token under `replacement`, see below)
-- `replacement`: Only valid for `handletokens: replace`, see above
+- `token`: the actual token (for `remove` it was deleted from the sequence, for `mask` it's one-hot encoding was set to zero)
 - `label`: The true regression value
 - `pred`: The predicted regression value
 - `start_offset`: Start offset in the sequence (zero-indexed)
@@ -323,16 +322,14 @@ python xlnet.py interpret --configfile exampleconfigs/predict_interpret.yaml
 
 Similar to [inference](#4-inference-predicting), most of the training parameters are obsolete, so we provide a [slimmer inference config file](exampleconfigs/predict_interpret.yaml). For Interpretability, we resort to [leave-one-out scores](https://aclanthology.org/N19-1357.pdf). "Leaving out" a token can be handled in three different ways:
 
-- `remove`: The token will be removed from the sequence ant not replace.
-- `mask`: The token will be removed with the tokenizer's `[MASK]` token.
-- `replace`: The token will be exchanged for against other tokens specified by `replacementslist`. In the example below, `a` is replaced against `[b, c]`, `b` against `[a, c]` and so on.
+- `remove`: The token will be completely removed from the sequence.
+- `mask`: The token will be replaced with the tokenizer's `[MASK]` token.
 
 As for inference, in the config file you should declare the new data source, where to save the results and where to find the trained model to infer from. 
 
 > **Attention**: Although the calculation of LOO scores is batched, it is still fairly expensive:
 >
->    - For `remove`/`mask`: In a sequence of 1,000 tokens each token will either be removed or replaced its one-hot-vector set to zero which results in 1,000 samples for single sequence.
->    - For `replace`: In a sequence of 1,000 tokens each token will be replaced by X mutual tokens, resulting in 1,000 * X samples.
+>    - In a sequence of 1,000 tokens each token will either be removed or replaced its one-hot-vector set to zero which results in 1,000 samples for single sequence.
 
 
 ```yaml
@@ -374,9 +371,7 @@ settings:
 # Interpretation settings
 #
 looscores:
-  handletokens: remove # One of [remove, mask, replace]. This determines how to treat the absence of a token during leave-one-out calculation.
-  replacementlists: [["a", "b", "c"], ["x", "y", "z"]] # List of lists of atomic tokens that should be replaced against each other if `handletokens` is set to `replace`.
-  replacespecifier: True # if `True` and `handletokens` is set to `replace`, modified tokens (i.e. "a#0.7") will also be relplaced against an unmodified version (e.g. "a#0.7" --> ["c#0.7", "g#0.7", "t#0.7", "a"])`.
+  handletokens: remove # One of [remove, mask]. This determines how to treat the absence of a token during leave-one-out calculation.
 ```
 
 ## Command Line Options
@@ -423,10 +418,8 @@ Concluding the [workflow tutorial](#example-workflow), we here list all the comm
   --fromscratch         Finetunes a regression model on a given task with freshly initialized parameters.
   --scaling {log,minmax,stanard}
   --weightedregression  Uses quality labels as weights for the loss function.
-  --handletokens {remove,mask,replace}
+  --handletokens {remove,mask}
                         How to handle 'missing' tokens during interpretability calculations.
-  --replacementlists REPLACEMENTLISTS
-                        List of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`.
   --silent              If set to True, verbose printing of the transformers library is disabled. Only results are printed.
   --dev [DEV]           A flag to speed up processes for debugging by sampling down training data to the given amount of samples and using this data also for validation steps.
   --getdata             Only tokenize and save the data to file, then quit.

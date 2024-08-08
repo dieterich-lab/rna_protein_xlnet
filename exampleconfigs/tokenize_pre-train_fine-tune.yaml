@@ -14,7 +14,7 @@ tokenizing and pre-training data source:
   columnsep: "\t" # could be "," "|", "\t" ...
   tokensep: ","
   idpos: 1 # position of the identifier of the column 
-  seqpos: 1 # position of the sequence column 
+  seqpos: 2 # position of the sequence column 
 
 #
 # Description of the fine-tuning source
@@ -25,10 +25,10 @@ fine-tuning data source:
   columnsep: "\t" # could be "," "|", "\t" ...
   tokensep: ","
   idpos: 1 # position of the identifier of the column 
-  seqpos: 1 # position of the sequence column 
-  labelpos: 1 # position of the label column 
+  seqpos: 2 # position of the sequence column 
+  labelpos: 3 # position of the label column 
   weightpos: None # position of the column containing quality labels 
-  splitpos: 1 # position of the split identifier for cross validaton
+  splitpos: 4 # position of the split identifier for cross validaton
 
 #
 # If you want to tokenize, you only need to specify the following.

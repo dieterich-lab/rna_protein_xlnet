@@ -10,12 +10,37 @@ data source:
   tokensep: ","
   specifiersep: None
   idpos: 1 # position of the identifier of the column 
-  seqpos: 1 # position of the sequence column 
-  labelpos: 8 # if the file has ground truth labels, this is the position of the label column (else delete or set to `None`)
+  seqpos: 2 # position of the sequence column 
+  labelpos: 3 # if the file has ground truth labels, this is the position of the label column (else delete or set to `None`)
 
+#
+# State the encoding of the pretrained model
+#
+tokenization:
+  encoding: bpe # DO NOT CHANGE. This is the default encoding for our XLNET models.
 
 inference data source:
   pretrainedmodel: "path/to/fine-tuned-model" # path of the fine-tuned model to infer from
+
+#
+# Genral settings for model predictons.
+#
+settings:
+  data pre-processing:
+    centertoken: False # either False or a character on which the sequence will be centered
+  environment:
+    ngpus: 1 # [1, 2, 4] # TODO: automatically infer this from the environment
+  training:
+    general:
+      batchsize: 8
+      blocksize: 512 # DO NOT CHANGE. This is the default sequence length for our language models.
+      scaling: log # label scaling [log, minmax, standard]
+
+#
+# Interpretation settings
+#
+looscores:
+  handletokens: remove # One of [remove, mask]. This determines how to treat the absence of a token during leave-one-out calculation.
 
 #
 # Specific options for debugigng or dataset creation
