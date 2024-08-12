@@ -248,7 +248,7 @@ settings:
       resume: False # When a training was cancelled (resuming) or further fine-tuning (see the general documentation of biolm_utils for further details.
 ```
 
-### 5) Fine-tuning a model
+### 4) Fine-tuning a model
 
 For fine-tuning (training) a model, the `fine-tune` mode is required:
 
@@ -267,7 +267,7 @@ settings:
       weightedregression: False # if you have quality labels for your data, then you can do weighted regression. Please fill out "weightpos" under "fine-tuning data source".
 ```
 
-### 6) Inference (predicting)
+### 5) Inference (predicting)
 
 Now that you've trained a model (new models) you probably want to make predictions on new data. To do so, you can use `predict` mode: 
 
@@ -312,7 +312,7 @@ settings:
     scaling: log # label scaling [log, minmax, standard]
 ```
 
-### 5) Interpretation
+### 6) Interpretation
 
 As a last step, you certainly want to get intepretations for your predictions.  To do so, you can use `interpret` mode: 
 
