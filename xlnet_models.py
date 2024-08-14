@@ -34,5 +34,5 @@ class RNA_XLNetForSequenceClassification(XLNetForSequenceClassification):
             eos_token_id=tokenizer.eos_token_id,
             bos_token_id=tokenizer.bos_token_id,
         )
-        config.num_labels = int(bool(nlabels))
+        config.num_labels = int(nlabels)
         return config
