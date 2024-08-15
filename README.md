@@ -1,12 +1,12 @@
-# `rna_protein_xlnet`: A plugin to run bioinformatical Language Models.
+# `rna_protein_xlnet`: A plugin to run bioinformatical language models.
 
-This projects implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for regressing half lives of RNA and protein sequences. In addition, it supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyse importance scores of individual inputs.
+This projects implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for the tasks of `regression` and `classification` of RNA and protein sequences. In addition, it supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyse importance scores of individual inputs.
 
 In detail, the following steps are implemented:
 
 - Tokenization of RNA/Protein sequences via one-hot encoding of molecules.
 - Pre-training of the XLNET model via Permutation Language Modelling.
-- Fine-tune models for regression.
+- Fine-tune models for regression or classification.
 - Calculation of leave-one-out scores for you fine-tuned model.
 
 ## Installation
@@ -34,7 +34,7 @@ pipenv install
 
 ## Usage
 
-The main script is [xlnet.py](./xlnet.py) which imports the `run()` function from the [biolm._utils](https://github.com/dieterich-lab/biolm_utils) library and provides the a custom `Config` object suitable for running the XLNet model. The script can be run via
+The main script is [xlnet.py](./xlnet.py) which imports the `run()` function from the [biolm._utils](https://github.com/dieterich-lab/biolm_utils) library and provides the custom `Config` object suitable for running the XLNet model. The script can be run via
 
 ```bash
 python xlnet.py [tokenize | pre-train | fine-tune | predict | interpret]
@@ -125,8 +125,8 @@ looscores
 The header of the `loo_scores_{handletokens}.csv` can be read as follows:
 - `sequence`: The sequence id / identifier
 - `token`: the actual token (for `remove` it was deleted from the sequence, for `mask` it's one-hot encoding was set to zero)
-- `label`: The true regression value
-- `pred`: The predicted regression value
+- `label`: The true regression value / class
+- `pred`: The predicted regression value / class
 - `start_offset`: Start offset in the sequence (zero-indexed)
 - `end_offset`: End offset in the sequence (zero-indexed). Example: The `a` in `cgat` would have start/end index of (2, 3)
 - `loo`: The loo score: positive means, the prediction increased for the value of `loo`, negative means, the predictions decreased for that amount
@@ -143,7 +143,7 @@ First off and simple, you can provide a path where to save your experiments (see
 #
 # Below is the outputpath; an identifier that will make your experiment re-usable.
 #
-outputpath: experiments/xlnet  # If None, will be set to the file name (without extension)
+outputpath: experiments/rna_xlnet  # If None, will be set to the file name (without extension)
 ```
 
 ### 1) Data Configuration
@@ -165,20 +165,21 @@ tokenizing and pre-training data source:
   seqpos: 1 # Position of the actual sequence in your file (your "input data").
   ```
 
-Once again, if your fine-tuning data is the one you learned the tokenizer from, please mirror the entries from above to the below segment in the yaml file.
+Once again, if your fine-tuning data is the same one you learned the tokenizer from, please mirror the entries from above to the below segment in the yaml file.
 
 ```yaml
 #
 # Description of the fine-tuning source
 #
 fine-tuning data source:
+  task: regression # or classification
   filepath: "fine-tuning_data_file.txt" # this is the path to the file that you use to learn the tokenizer.
   stripheader: False # if the custom data file has a header that has to be stripped.
   columnsep: "\t" # could be [",", "|", "\t", ...] This denominates field separator.
   tokensep: "," # This denominates how input tokens are concatenated (use "" or `False` if your input sequence is a conesecutive string of tokens).
   idpos: 1 # Position of the identifier column of your data, e.g. "ENST00000488147", which will be printed out in the inference/interepret results.
   seqpos: 1 # Position of the actual sequence in your file (your "input data").
-  labelpos: 1 # Position of the label column .
+  labelpos: 1 # Position of the label column.
   weightpos: None # Position of the column containing quality labels with allowed labels: ["STRONG", "GOOD", "WEAK", "POOR"].
   splitpos: 1 # If your data contains designated splits (at least 3) for which we can carry out cross validation. If there is not such a column, just change to `None` (see below for further explanation).
   ```
@@ -194,11 +195,11 @@ There are certain specifics regarding the following entries:
 - `splitpos`: If it is set to `None` fine-tuning is carried out on a 90/10 train/val split. If a splits position is given, we expect at least three different splits on which we do cross validation by:
   - setting each split as a dedicated validation set
   - and training on the rest of the splits.
-- `weightpos`: We can carry out weighted regression by weighting the loss of labels with quality labels of `["STRONG", "GOOD", "WEAK", "POOR"]` with correpsonding weights of `[0.25, 0.5, 0.75, 1]`.
+- `weightpos` (regression only): We can carry out weighted regression by weighting the loss of labels with quality labels of `["STRONG", "GOOD", "WEAK", "POOR"]` with correpsonding weights of `[0.25, 0.5, 0.75, 1]`.
 
 ### 2) Tokenization
 
-During tokenization the input sequences will be split into sub-tokens by usng [byte pair encoding](https://aclanthology.org/P16-1162/). To train a tokenizer, you'll beusing the `tokenize` mode:
+During tokenization the input sequences will be split into sub-tokens by using [byte pair encoding](https://aclanthology.org/P16-1162/). To train a tokenizer, you'll beusing the `tokenize` mode:
 
 ```bash
 python xlnet.py tokenize --configfile exampleconfigs/tokenize_pre-train_fine-tune.yaml
@@ -256,7 +257,7 @@ For fine-tuning (training) a model, the `fine-tune` mode is required:
 python xlnet.py fine-tune --configfile exampleconfigs/tokenize_pre-train_fine-tune.yaml
 ```
 
-Depending on the `splitpos` argument, fine-tuning will be carried out on a 90/10 train/eval split or via cross validaton on each split as validation set. As for `pretrain` you can change the training `settings`. Down below we only list the parameters that are specific to the `fine-tune` option.
+Depending on the `splitpos` argument, fine-tuning will be carried out on a 90/10 train/eval split or via cross validaton on each split as validation set. As for `pretrain` you can change the training `settings`. Down below we only list the parameters that are specific to the `fine-tune` option. Durng fine-tuning the previous pretrainedmodel from this run is being used. If you want to use an externall/otherwise trained mode, specify its path with `pretrainedmodel`.
 
 ```yaml
 settings:
@@ -264,7 +265,8 @@ settings:
     general:
       patience: 3 # Number of evaluation (once per epoch) that are carried out without improvements of the model on the evaluation set before training is stopped.
       scaling: log # label scaling [log, minmax, standard]
-      weightedregression: False # if you have quality labels for your data, then you can do weighted regression. Please fill out "weightpos" under "fine-tuning data source".
+      weightedregression: False # if you have quality labels for your regresion labels, then you can do weighted regression. Please fill out "weightpos" under "fine-tuning data source".
+      pretrainedmodel: None # Path to a model that will be used as base model. If `None`, the pretrained model from this run is used (default).
 ```
 
 ### 5) Inference (predicting)
@@ -415,7 +417,7 @@ Concluding the [workflow tutorial](#example-workflow), we here list all the comm
                         Number of epochs without improvement on the development set before training stops.
   --resume [RESUME]     This parameter is overloaded with two options: 1) `--resume` (without parameters) triggers the huggingface internal `resume_from_checkpoint` option which will only _continue_ a training that has been interrupted. For example, a planned training that was to run for 50 epochs
                         and was interrupted at epoch 23 can be resumed from the best checkpoint to be run from epoch 23 to planned epoch 50. 2) `--resume X` will trigger further pre-training a model from its best checkpoint for additional `X` epochs.
-  --fromscratch         Finetunes a regression model on a given task with freshly initialized parameters.
+  --fromscratch         Finetunes a model on a given task with freshly initialized parameters.
   --scaling {log,minmax,stanard}
   --weightedregression  Uses quality labels as weights for the loss function.
   --handletokens {remove,mask}
@@ -425,4 +427,8 @@ Concluding the [workflow tutorial](#example-workflow), we here list all the comm
   --getdata             Only tokenize and save the data to file, then quit.
   --configfile CONFIGFILE
                         Path to the a config file that will overrule CLI arguments.
+  --pretrainedmodel PRETRAINEDMODEL
+                        When fine-tuning, this refers to using a pre-trained model from a differenly named run. During inference and interpretation, this refers to the path of fine-tuned model.
+  --task {regression,classification}
+                        Determines the kind of training (with correct choice of loss function, trainer and so on).
 ```
