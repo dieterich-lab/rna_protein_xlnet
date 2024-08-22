@@ -1,4 +1,3 @@
-from biolm_utils.config import Config, set_config
 from transformers import (
     DataCollatorForPermutationLanguageModeling,
     DataCollatorWithPadding,
@@ -6,7 +5,7 @@ from transformers import (
     XLNetTokenizerFast,
 )
 
-# from rna_xlnet_dataset import RNAXLNETDataset
+from biolm_utils.config import Config, set_config
 from xlnet_models import RNA_XLNetForSequenceClassification, RNA_XLNetLMHeadModel
 
 params = [
