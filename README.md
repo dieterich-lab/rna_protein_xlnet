@@ -14,7 +14,7 @@ In detail, the following steps are implemented:
 First clone the repo and cd into it. Then, we recommend to create a dedicated environment ([python venv](https://docs.python.org/3/library/venv.html)) for the project. Now, you install the project via the [Pipfile](./Pipfile) file which in turn will install the [biolm_utils](https://github.com/dieterich-lab/biolm_utils) library. Summarising, execute the following steps:
 
 ```bash
-git clone https://github.com/dieterich-lab/rna_protein_xlnet.git
+git clone --recurse-submodules https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
 python3 -m venv ~/.venvs/xlnet  # or any other choice of directory
 . ~/.venvs/xlnet/bin/activate # or your choice of directory
