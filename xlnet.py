@@ -6,6 +6,7 @@ from transformers import (
 )
 
 from biolm_utils.config import Config, set_config
+from xlnet_dataset import RNALanguageDataset
 from xlnet_models import RNA_XLNetForSequenceClassification, RNA_XLNetLMHeadModel
 
 params = [
@@ -21,6 +22,7 @@ params = [
     True,  # 10
     XLNetConfig,  # 11
     True,  # 12
+    RNALanguageDataset,  # 13
 ]
 
 config = Config(*params)
