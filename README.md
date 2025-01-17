@@ -211,15 +211,13 @@ There are certain specifics regarding the following entries:
 
 ### 2) Tokenization
 
-During tokenization the input sequences will be split into sub-tokens by using [byte pair encoding](https://aclanthology.org/P16-1162/). To train a tokenizer, you'll beusing the `tokenize` mode:
+During tokenization the input sequences will be split into sub-tokens by using [byte pair encoding](https://aclanthology.org/P16-1162/) or split token-/characterwise (`atomic`). To train a tokenizer, you'll beusing the `tokenize` mode:
 
 ```bash
 python xlnet.py tokenize --configfile exampleconfigs/tokenize_pre-train_fine-tune.yaml
 ```
 
 All options but `samplesize` refer to the byte pair encoding process to set up the resulting vocabulary, where es the former can be used to downsample your file for learning the tokenizer if it is huge.
-
-> **Attention**: Do not change the `encoding` as this is the default encoding of one-hot-encodings for our language models.
 
 ```bash
 #
@@ -230,8 +228,10 @@ tokenization:
   vocabsize: 20_000 # the maximum size of the vocabulary which will not be exceeded.
   minfreq: 2 # the minimum frequency of a token before being removed from the vocabulary.
   atomicreplacements: None # dictionary of replacements, i.e. `{"a": "A", "bcd": "xyz"}.
-  maxtokenlength: 10 # the maximum length allowed for sub-tokens.
-  encoding: bpe # DO NOT CHANGE. This is the default encoding for our XLNET models.
+  encoding: bpe # [bpe, atomic]
+  bpe: 
+    maxtokenlength: 10 # the maximum length allowed for sub-tokens.
+  lefttailing: True # If true, the sequences will be cut from the left (begging from the right end).
 ```
 
 ### 3) Pre-training
@@ -307,7 +307,7 @@ inference data source:
 # State the encoding of the pretrained model
 #
 tokenization:
-  encoding: bpe # DO NOT CHANGE. This is the default encoding for our XLNET models.
+  encoding: bpe # [bpe, ataomic]
 
 inference model:
   pretrainedmodel: "path/to/fine-tuned-model" # path of the fine-tuned model to infer from
@@ -328,7 +328,7 @@ settings:
 
 ### 6) Interpretation
 
-As a last step, you certainly want to get intepretations for your predictions.  To do so, you can use `interpret` mode: 
+As a last step, you can generate intepretations for your predictions. To do so, you can use `interpret` mode: 
 
 ```bash
 python xlnet.py interpret --configfile exampleconfigs/predict_interpret.yaml
@@ -338,6 +338,8 @@ Similar to [inference](#4-inference-predicting), most of the training parameters
 
 - `remove`: The token will be completely removed from the sequence.
 - `mask`: The token will be replaced with the tokenizer's `[MASK]` token.
+- `rpelace`: Tokens will be replaced against their corresponding replacementlist in the `replacementdict`
+- `replacementdict`: If `handletokens` is set to `replace` this denotes a dict of atomic tokens that should be replaced against each other.
 
 As for inference, in the config file you should declare the new data source, where to save the results and where to find the trained model to infer from. 
 
