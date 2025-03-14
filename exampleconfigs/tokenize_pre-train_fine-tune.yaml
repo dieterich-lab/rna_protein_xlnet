@@ -11,7 +11,7 @@ outputpath: "test_folder"  # If None, will be set to the file name (without exte
 tokenizing and pre-training data source:
   filepath: "tokenizing_and_pre-training_data_file.txt"
   stripheader: False # if the custom data file has a header that has to be stripped
-  columnsep: "\t" # could be "," "|", "\t" ...
+  columnsep: "\t" # could be ",", "|", "\t", ... Denominates the separator token of your file.
   tokensep: ","
   idpos: 1 # position of the identifier of the column 
   seqpos: 2 # position of the sequence column 
@@ -25,48 +25,44 @@ fine-tuning data source:
   columnsep: "\t" # could be "," "|", "\t" ...
   tokensep: ","
   idpos: 1 # position of the identifier of the column 
-  seqpos: 2 # position of the sequence column 
-  labelpos: 3 # position of the label column 
-  weightpos: None # position of the column containing quality labels 
-  splitpos: 4 # position of the split identifier for cross validaton
+  seqpos: 1 # position of the sequence column 
+  labelpos: 1 # position of the label column 
+
+  weightpos: None # position of the column containing quality labels with allowed labels: ["STRONG", "GOOD", "WEAK", "POOR"]
+  splitpos: 1 # position of the split identifier for cross validaton. If `None`, data samples are shuffled and randomly assigned to 90/10 train/eval splits.
+  splitratio:  # If your data has no designated splits, you can denote a comma-separated list as split ratio like `80,20` or `70,20,10`. If that list contains a third split, testing is triggered on that split, otherwise, no testing is done.
 
 #
 # If you want to tokenize, you only need to specify the following.
 #
 tokenization:
-  samplesize: None # if your data is to big to learn a tokenizer, you can downsample it
+  samplesize: None # if your data file is to big to learn a tokenizer, you can downsample it
   vocabsize: 20_000
   minfreq: 2
-  atomicreplacements: None # dictionary of replacements, i.e. `{"a": "A", "bcd": "xyz"}
+  atomicreplacements: None # dictionary of replacements from multi-char tokens to atomic characters, i.e. `{"-CDSstop-": "s"}
   maxtokenlength: 10
   encoding: bpe # DO NOT CHANGE. This is the default encoding for our XLNET models.
+  lefttailing: False # If true, the sequences will be cut from the left (begging from the right end).
 
 #
 # The following are detailed settings for the training/fine-tuning mode. 
 #
 settings:
-  data pre-processing (RNA):
+  data pre-processing:
     centertoken: False # either False or a token/character on which the sequence will be centered
   environment:
-    ngpus: 1 # [1, 2, 4]
+    ngpus: 1 # [1, 2, 4] # TODO: automatically infer this from the environment
   training:
-    general:
-      batchsize: 8
-      gradacc: 4
-      blocksize: 512 # DO NOT CHANGE. This is the default sequence length for our language models.
-      nepochs: 10
-      patience: 3
-      resume: False # for resuming training
-    fine-tuning:
-      fromscratch: False # if we want to fine-tune without a pre-trained model (language models only)
-      scaling: log # [log, minmax, standard]
-      weightedregression: False
-
-#
-# The following are detailed settings for the interpretation mode
-#
-looscores:
-  handletokens: remove # [remove, mask]
+    batchsize: 8
+    gradacc: 4
+    blocksize: 512 # DO NOT CHANGE. This is the default sequence length for our language models.
+    nepochs: 10
+    patience: 3
+    resume: False # for resuming training
+  fine-tuning:
+    fromscratch: False # if we want to fine-tune without a pre-trained model (language models only)
+    scaling: log # [log, minmax, standard]
+    weightedregression: False
 
 #
 # Specific options for debugigng or dataset creation
