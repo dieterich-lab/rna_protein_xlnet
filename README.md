@@ -4,7 +4,7 @@ This projects implements pre-training and fine-tuning of the [XLNet](https://arx
 
 In detail, the following steps are implemented:
 
-- Tokenization of RNA/Protein sequences via one-hot encoding of molecules.
+- Tokenization of RNA/Protein sequences via byte pair encoding of molecules.
 - Pre-training of the XLNET model via Permutation Language Modelling.
 - Fine-tune models for regression and classification.
 - Calculation of leave-one-out scores for you fine-tuned model.
@@ -136,7 +136,7 @@ looscores
 
 The header of the `loo_scores_{handletokens}.csv` can be read as follows:
 - `sequence`: The sequence id / identifier
-- `token`: the actual token (for `remove` it was deleted from the sequence, for `mask` it's one-hot encoding was set to zero)
+- `token`: the masked/removed actual token 
 - `label`: The true regression value / class
 - `pred`: The predicted regression value / class
 - `start_offset`: Start offset in the sequence (zero-indexed)
@@ -230,7 +230,7 @@ tokenization:
   encoding: bpe # [bpe, atomic]
   bpe: 
     maxtokenlength: 10 # the maximum length allowed for sub-tokens.
-  lefttailing: True # If true, the sequences will be cut from the left (begging from the right end).
+  lefttailing: True # If true, the sequences will be cut from the left (begginnig from the right end). If false, sequences will cut from the right end of the sequence.
 ```
 
 ### 3) Pre-training
@@ -320,7 +320,7 @@ settings:
     ngpus: 1 # [1, 2, 4] # TODO: automatically infer this from the environment
   training:
     batchsize: 8
-    blocksize: 512 # DO NOT CHANGE. This is the default encoding of one-hot-encodings for CNN inputs.
+    blocksize: 512 # DO NOT CHANGE. This is the default encoding length for XLNET.
     scaling: log # label scaling [log, minmax, standard]
 ```
 
@@ -341,7 +341,7 @@ As for inference, in the config file you should declare the new data source, whe
 
 > **Attention**: Although the calculation of LOO scores is batched, it is still fairly expensive:
 >
->    - In a sequence of 1,000 tokens each token will either be removed or replaced its one-hot-vector set to zero which results in 1,000 samples for single sequence.
+>    - In a sequence of 1,000 tokens each token will either be removed or replaced which results in 1,000 samples for single sequence.
 
 
 ```yaml
@@ -376,7 +376,7 @@ settings:
     ngpus: 1 # [1, 2, 4] # TODO: automatically infer this from the environment
   training:
     batchsize: 8
-    blocksize: 512 # DO NOT CHANGE. This is the default encoding of one-hot-encodings for CNN inputs.
+    blocksize: 512 # DO NOT CHANGE. This is the default encoding length of XLNET.
     scaling: log # label scaling [log, minmax, standard]
 
 #
