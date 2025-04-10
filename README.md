@@ -174,6 +174,7 @@ tokenizing and pre-training data source:
   tokensep: "," # This denominates how input tokens are concatenated (use "" or `False` if your input sequence is a conesecutive string of tokens).
   idpos: 1 # Position of the identifier column of your data, e.g. "ENST00000488147", which will be printed out in the inference/interepret results.
   seqpos: 1 # Position of the actual sequence in your file (your "input data").
+  pretrainedmodel: None # If you want to use a different tokenizer than the one from the current experiment's outputfolder
   ```
 
 Once again, if your fine-tuning data is the one you learned the tokenizer from, please mirror the entries from above to the below segment in the yaml file.
@@ -192,7 +193,8 @@ fine-tuning data source:
   labelpos: 1 # Position of the label column.
   weightpos: None # Position of the column containing quality labels with allowed labels: ["STRONG", "GOOD", "WEAK", "POOR"].
   splitpos: 1 # If your data contains designated splits (at least 3) for which we can carry out cross validation. If there is not such a column, just change to `False` (see below for further explanation).
-  splitratio:  # If your data has no designated splits, you can denote a comma-separated list as split ratio like `80,20` or `70,20,10`. If that list contains a third split, testing is triggered on that split, otherwise, no testing is done.
+  splitratio: None  # If your data has no designated splits, you can denote a comma-separated list as split ratio like `80,20` or `70,20,10`. If that list contains a third split, testing is triggered on that split, otherwise, no testing is done.
+  pretrainedmodel: None # If you want to use a different pretrainedmodel than the one from the current experiment's outputfolder
   ```
 
 A prototypical dataset file would look like this (without header)
@@ -241,6 +243,12 @@ After tokenization, we will pre-train a model on unlabeled data via masked langu
 python xlnet.py pre-train --configfile exampleconfigs/tokenize_pre-train_fine-tune.yaml
 ```
 
+#### Pretrainedmodel
+
+Without a specified `pretrainedmodel` the tokenizer from the current experiment's folder is loaded. If `pretrainedmodel` is set to the parent folder of a different experiment, the tokenizer from that folder is loaded.
+
+#### Special Configurations
+
 In your config file you can make certain modifications to the training `settings`:
 
 > **Attention**: Do not change the `blocksize` as this is the default sequence length for the CNN-RNN to function properly.
@@ -262,13 +270,25 @@ settings:
 
 ### 4) Fine-tuning a model
 
-For fine-tuning (training) a model, the `fine-tune` mode is required:
+For fine-tuning a model, the `fine-tune` mode is required:
 
 ```bash
 python xlnet.py fine-tune --task {regression, classification} --configfile exampleconfigs/tokenize_pre-train_fine-tune.yaml
 ```
 
-Depending on the `splitpos` argument, fine-tuning will be carried out on a 90/10 train/eval split or via cross validaton on each split as validation set. As for `pretrain` you can change the training `settings`. Down below we only list the parameters that are specific to the `fine-tune` option. Durng fine-tuning the previous pretrainedmodel from this run is being used. If you want to use an externall/otherwise trained mode, specify its path with `pretrainedmodel`.
+#### Pretrainedmodel
+
+Without a specified `pretrainedmodel` the model from the current experiment's folder is loaded. If `pretrainedmodel` is set to the parent folder of a different experiment, the pretrainedmodel from that folder is loaded.
+
+#### Splits
+
+Splits are created in the following loading order:
+
+1) If `splitpos` is set, the script assumes that (at least) 3 splits are given in a the file and exerts cross validation on these splits.
+2) Else: If `splitratio` is set, the script will create random train, validation (and test) splits according to the given split ratios.
+3) Else: Fine-tuning is done on a random 80/20 training/validation split.
+
+#### Special Configurations
 
 ```yaml
 settings:
