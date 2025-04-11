@@ -136,7 +136,8 @@ looscores
 
 The header of the `loo_scores_{handletokens}.csv` can be read as follows:
 - `sequence`: The sequence id / identifier
-- `token`: the masked/removed actual token 
+- `token`: the actual token (for `remove` it was deleted from the sequence, for `mask` it's one-hot encoding was set to zero, for `replace` it was replaced with the token under `replacement`, see below)
+- `replacement`: Only valid for `handletokens: replace`, see above
 - `label`: The true regression value / class
 - `pred`: The predicted regression value / class
 - `start_offset`: Start offset in the sequence (zero-indexed)
@@ -349,13 +350,15 @@ Similar to [inference](#4-inference-predicting), most of the training parameters
 
 - `remove`: The token will be completely removed from the sequence.
 - `mask`: The token will be replaced with the tokenizer's `[MASK]` token.
+- `replace`: The token will be exchanged for against other tokens specified by `replacementdict`. In the example below, `a` is replaced against `[b, c]`, `b` against `[a, c]` and so on.
+- `replacementdict`: None # Dict of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`. Must be convertible into a valid python dictionarye,.g.: '{"A": ["a", "c", "g", "t"], "a": ["A", "C", "G", "T"], "AEJ": ["aej", "cej", "gej", "tej"], "aej": ["AEJ", "CEJ", "GEJ", "TEJ"]}'
 
 As for inference, in the config file you should declare the new data source, where to save the results and where to find the trained model to infer from. 
 
 > **Attention**: Although the calculation of LOO scores is batched, it is still fairly expensive:
 >
->    - In a sequence of 1,000 tokens each token will either be removed or replaced which results in 1,000 samples for single sequence.
-
+>    - For `remove`/`mask`: In a sequence of 1,000 tokens each token will either be removed or replaced its one-hot-vector set to zero which results in 1,000 samples for single sequence.
+>    - For `replace`: In a sequence of 1,000 tokens each token will be replaced by X mutual tokens, resulting in 1,000 * X samples.
 
 ```yaml
 outputpath: "test_folder"  # If None, will be set to the file name (without extension)
@@ -396,5 +399,6 @@ settings:
 # Interpretation settings
 #
 looscores:
-  handletokens: remove # One of [remove, mask]. This determines how to treat the absence of a token during leave-one-out calculation.
+  handletokens: remove # One of [remove, mask, replace]. This determines how to treat the absence of a token during leave-one-out calculation.
+  replacementdict: None #  # List of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`. Must be convertible into a valid python dictionarye,.g.: '{"A": ["a", "c", "g", "t"], "a": ["A", "C", "G", "T"], "AEJ": ["aej", "cej", "gej", "tej"], "aej": ["AEJ", "CEJ", "GEJ", "TEJ"]}'
 ```
