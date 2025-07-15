@@ -308,14 +308,14 @@ flowchart TD
 	random_noncv[training on x%,<br> eval on y%,<br>if given: test on z%]:::A
 	splits_noncv[uses testplits for testing,<br> devsplits for evaluation,<br> others for training]:::B
 	random_cv[random CV with splitratio for _cv_ folds]:::C
-	splits_cv[takes each split as test split once]:::D
+	splits_cv[CV using the list of lists in _devsplits_, _testsplits_ as folds an dothers for training]:::D
 
 	cv -- cv=False --> random_or_splits_noncv
     cv -- cv=True|int --> random_or_splits_cv
 	random_or_splits_noncv -- splitratio=x,y(,z)<br> splitpos=None --> random_noncv
-	random_or_splits_noncv -- splitpos=int<br> devsplits=a,b,... <br> (testsplits=x,y,...) --> splits_noncv
-	random_or_splits_cv -- cv = int <br>splitratio = x,y(,z) <br> splitpos = None --> random_cv
-	random_or_splits_cv -- cv = True <br>splitpos = int--> splits_cv
+	random_or_splits_noncv -- splitpos=int<br> devsplits=[a,b,...] <br> (testsplits=[x,y,...]) --> splits_noncv
+	random_or_splits_cv -- cv=int <br>splitratio = x,y(,z) <br> splitpos = None --> random_cv
+	random_or_splits_cv -- cv=True <br>splitpos = int <br> devsplits=[[a,b],[c],...] <br> (testsplits=[[x, y], [z],..])--> splits_cv
     classDef A fill:#1976d2,stroke:#fff,stroke-wwdth:2px,color:#fff,stroke-dasharray: 0;
     classDef B fill:#cf4a2d,stroke:#fff,stroke-width:2px,color:#fff,stroke-dasharray: 0;
     classDef C fill:#37da37,stroke:#fff,stroke-width:2px,color:#fff,stroke-dasharray: 0;
@@ -334,8 +334,8 @@ Explained in words, this converges to:
 - <span style="color:red">RED</span>: **Training on custom splits**. Reuirements:
   - `cv=False` (no cross validation). 
   - `splitpos=int`(training on dedicated splits, where `int` is the split denominator in the file)
-  - `devsplits=a,b,...`(splits for validation)
-  - (`testsplits=x,y,...`(if given, splits for testing)
+  - `devsplits=[a,b,...]`(splits for validation)
+  - (`testsplits=[x,y,...]`(if given, splits for testing)
 
   We validate on all `a,b,...` splits given with `devsplits` and train all other splits. If given, testing is done on the the given `testsplits`. 
 
@@ -346,11 +346,13 @@ Explained in words, this converges to:
 
   Training for `cv` folds on `x`% random samples, evaluation on `y`% random samples. If three integers are given (`x`,`y`,`z`), we also test on `z`% random samples. For all folds, the data gets randomly shuffled.
 
-- <span style="color:yellow">YELLOW</span>: **Cross validation using each custom split as test set**. Requirements:
+- <span style="color:yellow">YELLOW</span>: **Cross validation using custom split sets**. Requirements:
   - `cv=True` (activating cross validation). 
   - `splitpos=int`(training on dedicated splits, where `int` is the split denominator in the file)
+  - `devsplits=[[a,b],[c],...]`(splits for validation)
+  - (`testsplits=[[x,y],[z],...]`(if given, splits for testing)
 
-  Each split is taken as test set once. The split before it (modulo calculated) will be taken as validation split, all other splits as training data.
+  Cross validation is performed on the custom split sets. If `testsplits` is set, this triggers testing on these splits. `devsplits` and `testsplits` must have the same length to be zipped.
 
 ### 5) Inference (predicting)
 
