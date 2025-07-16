@@ -156,7 +156,7 @@ First off and simple, you can provide a path where to save your experiments (see
 #
 # Below is the experimentname; an identifier that will make your experiment re-usable.
 #
-outputpath: experiments/rna_xlnet  # If None, will be set to the file name (without extension)
+outputpath: experiments/rna_xlnet  # If empty, will be set to the file name (without extension)
 ```
 
 ### 1) Data Configuration
@@ -215,10 +215,10 @@ All options but `samplesize` refer to the byte pair encoding process to set up t
 # If you want to tokenize, you only need to specify the following.
 #
 tokenization:
-  samplesize: None # if your data is to big to learn a tokenizer, you can downsample it
+  samplesize: # if your data is to big to learn a tokenizer, you can downsample it
   vocabsize: 20_000 # the maximum size of the vocabulary which will not be exceeded.
   minfreq: 2 # the minimum frequency of a token before being removed from the vocabulary.
-  atomicreplacements: None # dictionary of replacements, i.e. `{"a": "A", "bcd": "xyz"}.
+  atomicreplacements: # dictionary of replacements, i.e. `{"a": "A", "bcd": "xyz"}.
   encoding: bpe # [bpe, atomic]
   bpe: 
     maxtokenlength: 10 # the maximum length allowed for sub-tokens.
@@ -365,7 +365,7 @@ python xlnet.py predict --task {regression, classification} --configfile example
 As a lot of the training parameters are obsolete for pure inference, we provide a [slimmer inference config file](exampleconfigs/predict_interpret.yaml) for this purpose. It's now all about declaring the structure of the new data source, where to save the results and where to find the trained model to infer from. The latter will point  to a folder, where all the model specific files are stored (like `pytorch_model.bin` and so on, see [Pathing and Results](#pathing-and-results)):
 
 ```yaml
-outputpath: "test_folder"  # If None, will be set to the file name (without extension)
+outputpath: "test_folder"  # If empty, will be set to the file name (without extension)
 
 inference data source:
   filepath: "data_to_be_predicted_or_to_be_inferred_from.txt"
@@ -374,7 +374,7 @@ inference data source:
   tokensep: ","
   idpos: 1 # position of the identifier of the column 
   seqpos: 2 # position of the sequence column 
-  labelpos: 3 # if the file has ground truth labels, this is the position of the label column (else delete or set to `None`)
+  labelpos: 3 # if the file has ground truth labels, this is the position of the label column (else delete or leave empty)
 
 #
 # State the encoding of the pretrained model
@@ -412,7 +412,7 @@ Similar to [inference](#4-inference-predicting), most of the training parameters
 - `remove`: The token will be completely removed from the sequence.
 - `mask`: The token will be replaced with the tokenizer's `[MASK]` token.
 - `replace`: The token will be exchanged for against other tokens specified by `replacementdict`. In the example below, `a` is replaced against `[b, c]`, `b` against `[a, c]` and so on.
-- `replacementdict`: None # Dict of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`. Must be convertible into a valid python dictionarye,.g.: '{"A": ["a", "c", "g", "t"], "a": ["A", "C", "G", "T"], "AEJ": ["aej", "cej", "gej", "tej"], "aej": ["AEJ", "CEJ", "GEJ", "TEJ"]}'
+- `replacementdict`: # Dict of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`. Must be convertible into a valid python dictionarye,.g.: '{"A": ["a", "c", "g", "t"], "a": ["A", "C", "G", "T"], "AEJ": ["aej", "cej", "gej", "tej"], "aej": ["AEJ", "CEJ", "GEJ", "TEJ"]}'
 
 As for inference, in the config file you should declare the new data source, where to save the results and where to find the trained model to infer from. 
 
@@ -422,17 +422,17 @@ As for inference, in the config file you should declare the new data source, whe
 >    - For `replace`: In a sequence of 1,000 tokens each token will be replaced by X mutual tokens, resulting in 1,000 * X samples.
 
 ```yaml
-outputpath: "test_folder"  # If None, will be set to the file name (without extension)
+outputpath: "test_folder"  # If empty, will be set to the file name (without extension)
 
 inference data source:
   filepath: "data_to_be_predicted_or_to_be_inferred_from.txt"
   stripheader: False # if the custom data file has a header that has to be stripped
   columnsep: "\t" # could be "," "|", "\t" ...
   tokensep: ","
-  specifiersep: None
+  specifiersep:
   idpos: 1 # position of the identifier of the column 
   seqpos: 2 # position of the sequence column 
-  labelpos: 3 # if the file has ground truth labels, this is the position of the label column (else delete or set to `None`)
+  labelpos: 3 # if the file has ground truth labels, this is the position of the label column (else delete or leave empty)
 
 #
 # State the encoding of the pretrained model
@@ -461,5 +461,5 @@ settings:
 #
 looscores:
   handletokens: remove # One of [remove, mask, replace]. This determines how to treat the absence of a token during leave-one-out calculation.
-  replacementdict: None #  # List of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`. Must be convertible into a valid python dictionarye,.g.: '{"A": ["a", "c", "g", "t"], "a": ["A", "C", "G", "T"], "AEJ": ["aej", "cej", "gej", "tej"], "aej": ["AEJ", "CEJ", "GEJ", "TEJ"]}'
+  replacementdict: #  # List of lists of atomic tokens that should be replaced against each other if `--handletokens` is set to `replace`. Must be convertible into a valid python dictionarye,.g.: '{"A": ["a", "c", "g", "t"], "a": ["A", "C", "G", "T"], "AEJ": ["aej", "cej", "gej", "tej"], "aej": ["AEJ", "CEJ", "GEJ", "TEJ"]}'
 ```

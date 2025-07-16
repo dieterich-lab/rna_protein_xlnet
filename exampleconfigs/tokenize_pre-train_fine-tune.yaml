@@ -1,7 +1,7 @@
 #
 # Below is the outputpath where all (model) files are being saved
 #
-outputpath: "test_folder"  # If None, will be set to the file name (without extension)
+outputpath: "test_folder"  # If empty will be set to the file name (without extension)
 
 #
 # Description of the datasource used for 
@@ -15,7 +15,7 @@ tokenizing and pre-training data source:
   tokensep: ","
   idpos: 1 # position of the identifier of the column 
   seqpos: 2 # position of the sequence column 
-  pretrainedmodel: None
+  pretrainedmodel:
 
 #
 # Description of the fine-tuning source
@@ -28,7 +28,7 @@ fine-tuning data source:
   idpos: 1 # position of the identifier of the column 
   seqpos: 1 # position of the sequence column 
   labelpos: 1 # position of the label column 
-  pretrainedmodel: None
+  pretrainedmodel:
   crossvalidation: False # trigger if cross-validation is desired. If set to `0`, no cross-validation is performed. If set to `True`, cross-validation is performed on the predifined splits in the data file, taking each split as a test set once. If set to an integer `x`, `x`-fold cross-validation is performed on random splits determined by `splitratio`.
   splitratio: False # Comma-seprated list describing the desired split ratio for train, validation and (possibly) test split for both cross-validation and non-cross-validation. Format is `train_percentage/val_percentage(/test_percentage)`, e.g. `85,15` or `70,20,10`. Must sum up to 100 (see default). Given a third splitratio triggers testing on that split. Will be overruled in case `splitpos` parameter is set.
   splitpos: False # int or `False` (if no splits are defined in the data file). Denotes the column in the data file where the split identifier is defined. If set to `True`, the split identifier is expected to be in the first column of the data file, i.e. the first column is expected to contain the split identifier. For non-cross-validation `devsplits` and `testsplits` must be set to use the splits.
@@ -41,10 +41,10 @@ fine-tuning data source:
 # If you want to tokenize, you only need to specify the following.
 #
 tokenization:
-  samplesize: None # if your data file is to big to learn a tokenizer, you can downsample it
+  samplesize: # if your data file is to big to learn a tokenizer, you can downsample it
   vocabsize: 20_000
   minfreq: 2
-  atomicreplacements: None # dictionary of replacements from multi-char tokens to atomic characters, i.e. `{"-CDSstop-": "s"}
+  atomicreplacements: # dictionary of replacements from multi-char tokens to atomic characters, i.e. `{"-CDSstop-": "s"}
   maxtokenlength: 10
   encoding: bpe # DO NOT CHANGE. This is the default encoding for our XLNET models.
   lefttailing: False # If true, the sequences will be cut from the left (begging from the right end).
