@@ -1,0 +1,30 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "rna-protein-xlnet"
+version = "0.1.0"
+description = "XLNet plugin for RNA-protein interaction prediction"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "xlnet_plugin"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+torch = "^2.0.0"
+transformers = "^4.21.0"
+biolm-utils = {path = "../biolm_utils", develop = true}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+
+[tool.poetry.plugins."biolm_utils.plugins"]
+xlnet = "xlnet_plugin.config:get_xlnet_config"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
