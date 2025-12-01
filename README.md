@@ -1,47 +1,34 @@
 # `rna_protein_xlnet`: A plugin to run bioinformatical language models.
 
-This projects implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for the tasks of `regression` and `classification` of RNA and protein sequences. In addition, it supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyse importance scores of individual inputs.
-
-In detail, the following steps are implemented:
-
-- Tokenization of RNA/Protein sequences via byte pair encoding of molecules.
-- Pre-training of the XLNET model via Permutation Language Modelling.
-- Fine-tune models for regression and classification.
-- Calculation of leave-one-out scores for you fine-tuned model.
+This project implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for the tasks of `regression` and `classification` of RNA and protein sequences. It also supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyze importance scores of individual inputs.
 
 ## Installation
 
-First clone the repo and cd into it. Then, we recommend to create a dedicated environment ([python venv](https://docs.python.org/3/library/venv.html)) for the project. Now, you install the project via the [Pipfile](./Pipfile) file which in turn will install the [biolm_utils](https://github.com/dieterich-lab/biolm_utils) library. Summarising, execute the following steps:
-
 ```bash
+# Clone the repository with submodules
 git clone --recurse-submodules https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
-python3 -m venv ~/.venvs/xlnet  # or any other choice of directory
-. ~/.venvs/xlnet/bin/activate # or your choice of directory
+
+# Create and activate a virtual environment
+python3 -m venv ~/.venvs/xlnet
+source ~/.venvs/xlnet/bin/activate
+
+# Install dependencies
 pip install pipenv
 pipenv install
 ```
 
-To update this repository execute:
-
-```bash
-git pull
-```
-
-To also update the `biolm_utils` framework, type in:
+To update the repository and submodules:
 
 ```bash
 git pull --recurse-submodules
 ```
 
-## File structure
+## File Structure
 
 ```bash
-├── exampleconfigs # exampleconfigs to work with
-├── Pipfile # installation file
-├── README.md
-├── xlnet_model.py # Implementation of the model, espcially implementing the `getconfig()` method.
-├── xlnet.py # Main script importing the `run()` function from `biolm_utils` and declaration of the model/data/training configuration.
+├── exampleconfigs  # Example configurations for experiments
+├── src            # Source code for the plugin
 ```
 
 ## Usage
