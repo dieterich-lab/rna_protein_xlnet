@@ -1,5 +1,5 @@
 import torch
-from biolm_utils.rna_datasets import RNABaseDataset
+from biolm.rna_datasets import RNABaseDataset
 
 # XLNet model constants
 XLNET_BLOCKSIZE = 512

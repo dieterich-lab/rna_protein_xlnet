@@ -1,5 +1,7 @@
 # `rna_protein_xlnet`: A plugin to run bioinformatical language models.
 
+**Note**: This is a plugin for the `biolm_utils` framework, not the main framework itself. Start by cloning `biolm_utils` and running its installer to set up the framework and choose this plugin.
+
 This projects implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for the tasks of `regression` and `classification` of RNA and protein sequences. In addition, it supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyse importance scores of individual inputs.
 
 In detail, the following steps are implemented:
@@ -9,18 +11,53 @@ In detail, the following steps are implemented:
 - Fine-tune models for regression and classification.
 - Calculation of leave-one-out scores for you fine-tuned model.
 
-## Installation
+## Quick Start: Install Framework + XLNet Plugin
 
-First clone the repo and cd into it. Then, we recommend to create a dedicated environment ([python venv](https://docs.python.org/3/library/venv.html)) for the project. Now, you install the project via the [Pipfile](./Pipfile) file which in turn will install the [biolm_utils](https://github.com/dieterich-lab/biolm_utils) library. Summarising, execute the following steps:
+**Start here**: Clone the main framework which includes all plugins as submodules:
+
+```bash
+git clone --recurse-submodules https://github.com/dieterich-lab/biolm_utils.git
+cd biolm_utils
+./setup.sh
+```
+
+Then run an experiment:
+
+```bash
+poetry run biolm fine-tune --config-path ./plugins/xlnet/_exampleconfigs/your_config
+```
+
+For help: `poetry run biolm --help`
+
+## Manual Setup (Advanced Users)
+
+First clone the repo and cd into it. Then, we recommend using Poetry for reproducible installs. Execute the following steps:
 
 ```bash
 git clone --recurse-submodules https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
-python3 -m venv ~/.venvs/xlnet  # or any other choice of directory
-. ~/.venvs/xlnet/bin/activate # or your choice of directory
-pip install pipenv
-pipenv install
+
+# Install with Poetry
+poetry install
+
+# To add MLflow support
+poetry install --with mlflow
 ```
+
+## Using MLflow for Experiment Tracking
+
+This plugin supports MLflow for automatic logging of experiments. To enable:
+
+1. Install with MLflow as shown above.
+2. In your config, set `settings.mlflow.enabled: true`.
+
+During training, metrics and models are logged. To view:
+
+```bash
+poetry run mlflow ui --backend-store-uri /path/to/output/mode/mlruns
+```
+
+Access at http://127.0.0.1:5000.
 
 To update this repository execute:
 
@@ -37,8 +74,7 @@ git pull --recurse-submodules
 ## File structure
 
 ```bash
-├── exampleconfigs # exampleconfigs to work with
-├── Pipfile # installation file
+├── _exampleconfigs # Hydra-based example configs (main config + mode configs)
 ├── README.md
 ├── xlnet_model.py # Implementation of the model, espcially implementing the `getconfig()` method.
 ├── xlnet.py # Main script importing the `run()` function from `biolm_utils` and declaration of the model/data/training configuration.
@@ -46,29 +82,51 @@ git pull --recurse-submodules
 
 ## Usage
 
-The main script is [xlnet.py](./xlnet.py) which imports the `run()` function from the [biolm._utils](https://github.com/dieterich-lab/biolm_utils) library and provides the custom `Config` object suitable for running the XLNet model. The script can be run via
+The plugin integrates with the biolm_utils framework. Use the `biolm` command with Hydra overrides.
+
+### Basic Commands
 
 ```bash
-python xlnet.py {tokenize, pre-train, fine-tune, predict, interpret} {regression, classification}
+# Tokenize
+poetry run biolm mode=tokenize --config-path _exampleconfigs
+
+# Pre-train
+poetry run biolm mode=pre-train --config-path _exampleconfigs
+
+# Fine-tune
+poetry run biolm mode=fine-tune --config-path _exampleconfigs
+
+# Predict
+poetry run biolm mode=predict --config-path _exampleconfigs
+
+# Interpret
+poetry run biolm mode=interpret --config-path _exampleconfigs
 ```
 
-To get a verbose exlplanation on all the possible parameters you can run the following:
+For detailed configuration options, see the biolm_utils documentation and the config files in `_exampleconfigs/`.
+
+## Configuration
+
+This plugin uses Hydra-based configuration with a main config file and mode-specific overrides. The configs are located in `_exampleconfigs/`.
+
+### Config Structure
+
+- `config.yaml`: Main configuration file with defaults and shared settings.
+- `mode/`: Directory containing mode-specific configs (e.g., `pre-train.yaml`, `fine-tune.yaml`, etc.).
+
+To use a specific mode, run with `--config-path _exampleconfigs mode=pre-train` or similar.
+
+### Example Usage
 
 ```bash
-python xlnet.py {tokenize, fine-tune, predict, interpret} -h 
+# Pre-training
+poetry run biolm mode=pre-train --config-path _exampleconfigs
+
+# Fine-tuning
+poetry run biolm mode=fine-tune --config-path _exampleconfigs
 ```
 
-Please adhere to the [example workflow](#example-workflow) to retrace the single steps. For specific usage and information about the configuration parameters we refer the user to the [command line options section](#command-line-options).
-
-## Example config files
-
-We offer two example config files. The first one is for the pipeline of **tokenization**, **pre-training** and **fine-tuning**. The other one is for **predicting** (inference on a test file) and **interpreting** (generation of LOO scores). The latter one is noticeably smaller as all the training cofigurations fall away.
-
-```bash
-exampleconfigs
-├── tokenize_pre-train_fine-tune.yaml
-├── predict_interpret.yaml
-```
+See the biolm_utils documentation for detailed config options.
 
 ## Pathing and Results
 
@@ -247,20 +305,16 @@ tokenizing and pre-training data source:
 
 In your config file you can make certain modifications to the training `settings`:
 
-> **Attention**: Do not change the `blocksize` as this is the default sequence length for the CNN-RNN to function properly.
-
 ```yaml
 settings:
   data pre-processing:
     centertoken: False # either False or a character on which the sequence will be centered. The sequence will be equally cut from both sides (in best case: 255 left - centertoken - 255 right). If there's still space left for input tokens, we first add all remaining from the left, then from the right side of the centertoken.
-  environment:
-    ngpus: 1 # [1, 2, 4] # under development: automatically infer this from the environment
+  # GPU count is auto-detected; no need to set manually
   training:
     general:
       batchsize: 8 # This is the batch size. (effective gradients will be batchsize x gradacc, see below)
-      gradacc: 4 # Gradient accumulation: Determines how many batches of gradients should be aggregated (effective gradients will be batchsize x gradacc)
-      blocksize: 512 # DO NOT CHANGE. This is the default sequence length for our language models.
-      nepochs: 10 # Number of epochs the model iterates over the training dataset.
+      gradacc: 1 # Gradient accumulation: Determines how many batches of gradients should be aggregated (effective gradients will be batchsize x gradacc)
+      nepochs: 100 # Number of epochs the model iterates over the training dataset.
       resume: False # When a training was cancelled (resuming) or further fine-tuning (see `python xlnet.py pre-train -h` for detailed help)
 ```
 
@@ -395,7 +449,6 @@ settings:
     ngpus: 1 # [1, 2, 4] # TODO: automatically infer this from the environment
   training:
     batchsize: 8
-    blocksize: 512 # DO NOT CHANGE. This is the default encoding length for XLNET.
     scaling: log # label scaling [log, minmax, standard]
 ```
 
@@ -453,7 +506,6 @@ settings:
     ngpus: 1 # [1, 2, 4] # TODO: automatically infer this from the environment
   training:
     batchsize: 8
-    blocksize: 512 # DO NOT CHANGE. This is the default encoding length of XLNET.
     scaling: log # label scaling [log, minmax, standard]
 
 #

@@ -24,7 +24,7 @@ def get_xlnet_config():
     Returns:
         PluginConfig: The complete plugin configuration.
     """
-    from biolm_utils.plugin_config import PluginConfig, PluginManager
+    from biolm.plugin_config import PluginConfig, PluginManager
 
     # Create the plugin configuration
     # Modify these settings for your custom plugin
