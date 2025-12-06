@@ -1,97 +1,409 @@
-# XLNet Plugin for BioLM Utils
+# XLNet Plugin for BioLM 2.0
 
-This repository provides the **XLNet plugin** for `biolm_utils`, the core framework for tokenizing, pre-training, and fine-tuning language models on biological sequences.
+**Transformer-based language models for RNA and protein sequences**
 
-**Note**: This is a plugin for the `biolm_utils` framework, not the main framework itself. Start by cloning `biolm_utils` and running its installer.
+This is the **XLNet plugin** for [BioLM 2.0](https://github.com/dieterich-lab/biolm_utils), implementing permutation language modeling (PLM) for biological sequence analysis.
 
-The XLNet plugin implements:
-- **Pre-training**: Permutation Language Modeling (PLM) on unlabeled RNA/protein sequences
-- **Fine-tuning**: Regression and classification on labeled sequences
-- **Interpretation**: Leave-one-out (LOO) scores to analyze feature importance
+## 🔬 Overview
 
-## Quick Start: Install Framework + XLNet Plugin
+The XLNet plugin brings powerful transformer-based pre-training and fine-tuning capabilities to BioLM:
 
-The XLNet plugin is built into the `biolm_utils` framework and loads automatically.
+**Key Features:**
+- ✨ **Pre-training**: Permutation Language Modeling (PLM) on unlabeled sequences
+- 🎯 **Fine-tuning**: Classification and regression on labeled data
+- 🔍 **Interpretation**: Leave-one-out (LOO) analysis for feature importance
+- 🧬 **Versatile**: Works with RNA and protein sequences
+- ⚡ **Scalable**: Supports large-scale models and datasets
 
-**Start here**:
+**Architecture:** XLNet transformer with bidirectional context modeling through permutation-based training.
+
+---
+
+## 🚀 Installation
+
+### Prerequisites
+
+Install the BioLM framework **first**:
 
 ```bash
+# Clone and install framework
 git clone https://github.com/dieterich-lab/biolm_utils.git
 cd biolm_utils
+git checkout biolm-2.0
 poetry install
 ```
 
-Then run an experiment:
+### Install XLNet Plugin
 
 ```bash
-poetry run biolm pre-train --config-path ./biolm/plugins/xlnet/exampleconfigs/tokenize_pre-train_fine-tune.yaml
-```
-
-For help: `poetry run biolm --help`
-
-## Manual Plugin Installation (Advanced Users)
-
-If you want to develop the XLNet plugin separately:
-
-```bash
-# 1. Clone and install the framework first
-git clone https://github.com/dieterich-lab/biolm_utils.git
-cd biolm_utils
-poetry install
-
-# 2. Clone the plugin repository
+# Clone this plugin repository
 git clone https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
+git checkout xlnet-2.0
 
-# 3. Install the plugin in editable/development mode
+# Install plugin (registers via entry points)
 poetry install
-
-# The plugin registers itself via entry points and is automatically discovered
 ```
 
-## Plugin Configuration
+### Verify Installation
 
-The XLNet plugin is configured via the `xlnet_plugin/config.py` module, which defines:
-
-- **Pretraining Model**: `RNA_XLNetLMHeadModel` - XLNet with language model head for PLM
-- **Finetuning Model**: `RNA_XLNetForSequenceClassification` - XLNet for classification/regression
-- **Dataset**: `RNALanguageDataset` - Loads RNA sequences and labels
-- **Pretraining Required**: Yes (pre-training on unlabeled data before fine-tuning)
-- **Data Collator (Pretraining)**: `DataCollatorForPermutationLanguageModeling` - Handles PLM masking
-
-## Running Experiments
-
-Use Hydra-based config files to run experiments:
+Check that the plugin is discovered:
 
 ```bash
-# Pre-train on unlabeled data
+poetry run python -c "
+import importlib.metadata
+eps = importlib.metadata.entry_points(group='biolm.plugins')
+print('Available plugins:', [ep.name for ep in eps])
+"
+# Should show: ['xlnet', ...]
+```
+
+---
+
+## 📊 Data Format
+
+XLNet works with **k-mer tokenized sequences** (e.g., 3-mer, 6-mer).
+
+### Pre-training Data (Unlabeled)
+
+Plain text file with one sequence per line:
+
+```
+AUGCUA|GCUAUG|CUAUGC|...
+GCUAUG|CUAUGC|AUGCUA|...
+```
+
+### Fine-tuning Data (Labeled)
+
+Tab-separated file with columns: `sequence_id`, `label`, `sequence`
+
+```
+seq_001    0.75    AUGCUA|GCUAUG|CUAUGC|...
+seq_002    1.23    GCUAUG|CUAUGC|AUGCUA|...
+seq_003    0.42    CUAUGC|AUGCUA|GCUAUG|...
+```
+
+**Notes:**
+- K-mers separated by `|` (pipe character)
+- Labels can be numeric (regression) or categorical (classification)
+- Sequences must be **even length** for PLM masking
+
+---
+
+## ⚙️ Configuration
+
+Create a YAML config file (e.g., `my_experiment.yaml`):
+
+```yaml
+# Experiment metadata
+defaults:
+  - _self_
+  - mode: fine-tune
+
+experiment_name: xlnet_rna_stability
+plugin_name: xlnet
+
+# Data source
+data_source:
+  filepath: /path/to/labeled_data.txt
+  column_ids: [1, 2, 3]  # [id_col, label_col, seq_col]
+
+# Model configuration
+model:
+  num_labels: 1           # 1 for regression, >1 for classification
+  hidden_size: 768
+  num_attention_heads: 12
+  num_hidden_layers: 6
+  max_position_embeddings: 512
+
+# Training
+training:
+  num_train_epochs: 10
+  learning_rate: 1e-5
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4
+
+# Task type
+task: regression  # or 'classification'
+```
+
+---
+
+## 🎯 Quick Start
+
+### 1. Tokenize Sequences
+
+First, tokenize your raw sequences into k-mers:
+
+```bash
+poetry run biolm tokenize \
+  --config-path ./configs \
+  --config-name tokenize \
+  plugin_name=xlnet \
+  data_source.filepath=/path/to/raw_sequences.txt \
+  tokenizer.kmer_size=3
+```
+
+**Output:** Tokenized sequences ready for pre-training/fine-tuning
+
+### 2. Pre-train (Optional but Recommended)
+
+Pre-train on unlabeled data using Permutation Language Modeling:
+
+```bash
 poetry run biolm pre-train \
-  --config-path ./biolm/plugins/xlnet/exampleconfigs \
-  data_source.filepath=/path/to/unlabeled/data.txt
+  --config-path ./configs \
+  --config-name pre-train \
+  plugin_name=xlnet \
+  data_source.filepath=/path/to/unlabeled_kmers.txt \
+  training.num_train_epochs=50 \
+  training.learning_rate=1e-4
+```
 
-# Fine-tune on labeled data
+**Output:** Pre-trained XLNet model checkpoint
+
+### 3. Fine-tune
+
+Fine-tune on labeled data:
+
+```bash
 poetry run biolm fine-tune \
-  --config-path ./biolm/plugins/xlnet/exampleconfigs \
-  data_source.filepath=/path/to/labeled/data.txt \
-  task=regression
+  --config-path ./configs \
+  --config-name fine-tune \
+  plugin_name=xlnet \
+  data_source.filepath=/path/to/labeled_data.txt \
+  task=regression \
+  model.pretrained_model_path=/path/to/pretrained/checkpoint
 ```
 
-See `./biolm/plugins/xlnet/exampleconfigs/` for example configurations.
+**Output:** Fine-tuned model for your specific task
 
-## File Structure
+### 4. Predict
+
+Make predictions on new sequences:
+
+```bash
+poetry run biolm predict \
+  --config-path ./configs \
+  --config-name predict \
+  plugin_name=xlnet \
+  data_source.filepath=/path/to/test_data.txt \
+  model.pretrained_model_path=/path/to/finetuned/checkpoint
+```
+
+**Output:** Predictions CSV file
+
+### 5. Interpret (Leave-One-Out)
+
+Analyze feature importance using LOO:
+
+```bash
+poetry run biolm interpret \
+  --config-path ./configs \
+  --config-name interpret \
+  plugin_name=xlnet \
+  data_source.filepath=/path/to/test_data.txt \
+  model.pretrained_model_path=/path/to/finetuned/checkpoint
+```
+
+**Output:** LOO scores for each k-mer in each sequence
+
+---
+
+## 🏗️ Model Architecture
+
+**XLNet Transformer:**
 
 ```
-biolm/plugins/xlnet/
-├── xlnet_dataset.py        # RNALanguageDataset implementation
-├── xlnet_models.py         # XLNet model implementations
-├── exampleconfigs/         # Example Hydra configurations
-│   ├── tokenize_pre-train_fine-tune.yaml
-│   └── predict_interpret.yaml
-└── tests/                  # Plugin tests
+Input Sequence (k-mers)
+    ↓
+Embedding Layer (k-mer → vector)
+    ↓
+Positional Encodings (relative positions)
+    ↓
+┌─────────────────────────────────┐
+│ XLNet Transformer Layers        │
+│                                  │
+│  • Multi-head Self-Attention    │
+│    (Permutation-based masking)  │
+│  • Feed-Forward Networks        │
+│  • Layer Normalization          │
+│  • Residual Connections         │
+└─────────────────────────────────┘
+    ↓
+Pooling (e.g., last token, mean)
+    ↓
+Classification/Regression Head
+    ↓
+Output (prediction)
 ```
 
-## Important Notes
+**Key Differences from BERT:**
+- **Permutation Language Modeling** instead of masked LM
+- **Relative positional encodings** instead of absolute
+- **Two-stream self-attention** for content and query
+- **No [MASK] tokens** - learns from permutations
 
-- **Sequence Length**: The XLNet PLM collator requires even-length sequences to create a leakage-free permutation mask. Ensure input sequences are padded/truncated to even lengths.
-- **Pretraining**: This plugin requires pre-training before fine-tuning. Use `mode=pre-train` to pre-train on unlabeled data first.
-- **Learning Rate**: Default learning rate is 1e-5 (suitable for fine-tuning after pre-training).
+---
+
+## 🧪 Testing
+
+Run plugin tests:
+
+```bash
+# All tests
+poetry run pytest tests/ -v
+
+# Specific test
+poetry run pytest tests/test_xlnet_full_pipeline.py -v
+
+# With coverage
+poetry run pytest tests/ --cov=xlnet_plugin --cov-report=html
+```
+
+**Test files:**
+- `test_xlnet_full_pipeline.py` - End-to-end workflow tests
+- `test_xlnet_plugin_config.py` - Configuration validation tests
+
+---
+
+## 📁 Project Structure
+
+```
+rna_protein_xlnet/
+├── xlnet_plugin/
+│   ├── __init__.py          # Package initialization
+│   ├── config.py            # Plugin configuration (entry point)
+│   ├── dataset.py           # RNALanguageDataset
+│   └── models.py            # XLNet model implementations
+├── tests/
+│   ├── test_xlnet_full_pipeline.py
+│   └── test_xlnet_plugin_config.py
+├── internal_configs/        # Example configurations
+├── internal_experiments/    # Experiment results
+├── _resources/              # Sample data
+├── pyproject.toml           # Dependencies and entry points
+└── README.md                # This file
+```
+
+---
+
+## 🛠️ Development
+
+For detailed development information, see [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+**Entry Point Registration:**
+
+The plugin registers itself via `pyproject.toml`:
+
+```toml
+[tool.poetry.plugins."biolm.plugins"]
+xlnet = "xlnet_plugin.config:get_config"
+```
+
+BioLM automatically discovers and loads the plugin through this entry point.
+
+**Plugin Configuration:**
+
+```python
+# xlnet_plugin/config.py
+from biolm.plugin_config import PluginConfig
+from xlnet_plugin.models import RNA_XLNetLMHeadModel, RNA_XLNetForSequenceClassification
+from xlnet_plugin.dataset import RNALanguageDataset
+
+def get_config() -> PluginConfig:
+    return PluginConfig(
+        model_cls_for_pretraining=RNA_XLNetLMHeadModel,
+        model_cls_for_finetuning=RNA_XLNetForSequenceClassification,
+        dataset_cls=RNALanguageDataset,
+        # ... other configuration ...
+        pretraining_required=True,  # Pre-training recommended
+    )
+```
+
+---
+
+## 📊 XLNet vs Saluki
+
+| Feature | XLNet | Saluki |
+|---------|-------|--------|
+| **Architecture** | Transformer (attention-based) | CNN (convolution-based) |
+| **Pre-training** | ✅ Yes (PLM) | ❌ No |
+| **Input Format** | K-mer tokenized | Comma-separated nucleotides |
+| **Sequence Length** | Up to 512 k-mers (configurable) | Up to 12,000 nt |
+| **Context** | Global (self-attention) | Local (convolution windows) |
+| **Speed** | Slower (O(n²) attention) | Faster (O(n) convolutions) |
+| **Parameters** | 10M-100M+ | ~1M-5M |
+| **Best For** | Complex patterns, long-range dependencies | Local motifs, speed-critical tasks |
+
+**When to use XLNet:**
+- You have unlabeled data for pre-training
+- Task requires understanding long-range interactions
+- Computational resources available
+
+**When to use Saluki:**
+- Need fast inference
+- Limited computational resources
+- Focus on local sequence motifs
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add/update tests
+5. Run tests: `poetry run pytest tests/ -v`
+6. Commit changes (`git commit -m 'Add amazing feature'`)
+7. Push to branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+**Coding Standards:**
+- Follow PEP 8 style guide
+- Add type hints to function signatures
+- Include docstrings for public methods
+- Write tests for new features
+
+---
+
+## 📚 Citation
+
+If you use this plugin in your research, please cite:
+
+```bibtex
+@software{xlnet_plugin_biolm,
+  title={XLNet Plugin for BioLM 2.0},
+  author={Dieterich Lab},
+  year={2024},
+  url={https://github.com/dieterich-lab/rna_protein_xlnet}
+}
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🔗 Related Projects
+
+- **[BioLM Utils](https://github.com/dieterich-lab/biolm_utils)** - Core framework
+- **[Saluki Plugin](https://github.com/dieterich-lab/rna_saluki_cnn)** - CNN-based alternative
+- **[Transformers](https://github.com/huggingface/transformers)** - HuggingFace library
+
+---
+
+## 💬 Support
+
+- **Issues:** [GitHub Issues](https://github.com/dieterich-lab/rna_protein_xlnet/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/dieterich-lab/rna_protein_xlnet/discussions)
+- **Framework Docs:** [BioLM Documentation](https://github.com/dieterich-lab/biolm_utils/tree/biolm-2.0/docs)
+
+---
+
+**Built with ❤️ by the Dieterich Lab**
