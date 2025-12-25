@@ -155,6 +155,7 @@ def test_xlnet_full_pipeline(tiny_dataset):
             "model.intermediate_size=64",
             "debugging.accelerator=cpu",
             "training.batchsize=1",
+            "data_source.splitratio=[80,10,10]",
         ]
         result = run_command(pretrain_cmd, timeout=900)
         assert result.returncode == 0, f"Pre-training failed:\n{result.stderr}"
@@ -200,15 +201,15 @@ def test_xlnet_full_pipeline(tiny_dataset):
 
         # Step 4: Testing
         debug_log("\n>>> STEP 4: TESTING")
-        test_results_file = finetune_dir / "results.json"
+        test_results_file = finetune_dir / "eval_results.json"
         assert test_results_file.exists(), f"Results file not found"
 
         with open(test_results_file) as f:
             results = json.load(f)
 
         debug_log(f"Results: {results}")
-        assert "test_spearmanr" in results, "Spearman correlation not in results"
-        debug_log(f"✓ Test Spearman: {results['test_spearmanr']}")
+        assert "eval_spearman rho" in results, "Spearman correlation not in results"
+        debug_log(f"✓ Test Spearman: {results['eval_spearman rho']}")
 
         debug_log("\n" + "=" * 80)
         debug_log("XLNET FULL PIPELINE TEST PASSED")

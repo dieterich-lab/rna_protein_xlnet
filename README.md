@@ -23,39 +23,47 @@ The XLNet plugin brings powerful transformer-based pre-training and fine-tuning 
 
 ### Prerequisites
 
-Install the BioLM framework **first**:
+### 1. Install BioLM Framework First
 
 ```bash
 # Clone and install framework
 git clone https://github.com/dieterich-lab/biolm_utils.git
 cd biolm_utils
 git checkout biolm-2.0
-poetry install
+./install.sh
 ```
 
-### Install XLNet Plugin
+### 2. Install XLNet Plugin
 
 ```bash
-# Clone this plugin repository
+# Clone plugin
+cd ..
 git clone https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
 git checkout xlnet-2.0
 
-# Install plugin (registers via entry points)
-poetry install
+# Run plugin installation script
+./install.sh
 ```
 
-### Verify Installation
+The plugin automatically:
+- Finds the framework
+- Installs itself into the framework's environment
+- Registers via entry points
+- Verifies successful registration
 
-Check that the plugin is discovered:
+### 3. Verify Installation
+
+Check registered plugins:
 
 ```bash
+cd ../biolm_utils
 poetry run python -c "
 import importlib.metadata
-eps = importlib.metadata.entry_points(group='biolm.plugins')
-print('Available plugins:', [ep.name for ep in eps])
+eps = list(importlib.metadata.entry_points(group='biolm.plugins'))
+print('Registered plugins:', [ep.name for ep in eps])
 "
-# Should show: ['xlnet', ...]
+# Should show: ['xlnet', ...] or ['xlnet', 'saluki']
 ```
 
 ---
