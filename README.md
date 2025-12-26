@@ -35,22 +35,8 @@ git checkout biolm-2.0
 
 ### 2. Install XLNet Plugin
 
-**Option A: Using BioLM CLI (Recommended)**
 ```bash
 biolm install-plugin https://github.com/dieterich-lab/rna_protein_xlnet.git
-```
-
-**Option B: Manual Installation (via Poetry)**
-```bash
-# 1. Clone plugin
-cd ..
-git clone https://github.com/dieterich-lab/rna_protein_xlnet.git
-cd rna_protein_xlnet
-git checkout xlnet-2.0
-
-# 2. Install into framework using Poetry
-cd ../biolm_utils
-poetry add --editable ../rna_protein_xlnet
 ```
 
 The plugin automatically:
