@@ -50,13 +50,7 @@ The plugin automatically:
 Check registered plugins:
 
 ```bash
-cd ../biolm_utils
-poetry run python -c "
-import importlib.metadata
-eps = list(importlib.metadata.entry_points(group='biolm.plugins'))
-print('Registered plugins:', [ep.name for ep in eps])
-"
-# Should show: ['xlnet', ...] or ['xlnet', 'saluki']
+biolm list-plugins
 ```
 
 ---
