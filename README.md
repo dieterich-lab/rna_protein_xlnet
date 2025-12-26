@@ -48,8 +48,9 @@ git clone https://github.com/dieterich-lab/rna_protein_xlnet.git
 cd rna_protein_xlnet
 git checkout xlnet-2.0
 
-# Run plugin installation script
-./install.sh
+# Activate framework environment and install
+source ../biolm_utils/.venv/bin/activate
+pip install -e .
 ```
 
 The plugin automatically:
