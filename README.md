@@ -36,7 +36,7 @@ git checkout biolm-2.0
 ### 2. Install XLNet Plugin
 
 ```bash
-biolm install-plugin https://github.com/dieterich-lab/rna_protein_xlnet.git
+poetry run biolm install-plugin https://github.com/dieterich-lab/rna_protein_xlnet.git
 ```
 
 The plugin automatically:
@@ -50,7 +50,7 @@ The plugin automatically:
 Check registered plugins:
 
 ```bash
-biolm list-plugins
+poetry run biolm list-plugins
 ```
 
 ---
