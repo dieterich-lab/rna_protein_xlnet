@@ -1,3 +1,5 @@
+> **Note:** The `xlnet-2.0` branch contains the latest, actively developed version of this plugin. The `main` branch is legacy. For the newest features and code, please [switch to the `xlnet-2.0` branch](https://github.com/dieterich-lab/rna_protein_xlnet/tree/xlnet-2.0).
+
 # `rna_protein_xlnet`: A plugin to run bioinformatical language models.
 
 This project implements pre-training and fine-tuning of the [XLNet](https://arxiv.org/abs/1906.08237) language model for the tasks of `regression` and `classification` of RNA and protein sequences. It also supports the extraction of leave-one-out (LOO) scores for fine-tuned models to analyze importance scores of individual inputs.
