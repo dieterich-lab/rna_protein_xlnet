@@ -1,11 +1,11 @@
 import torch
-from biolm.rna_datasets import RNABaseDataset
+from biolm.biolm_dataset import BioLMDataset
 
 # XLNet model constants
 XLNET_BLOCKSIZE = 512
 
 
-class RNALanguageDataset(RNABaseDataset):
+class RNALanguageDataset(BioLMDataset):
     def __init__(self, **args):
         # initialize base class
         super().__init__(**args)
