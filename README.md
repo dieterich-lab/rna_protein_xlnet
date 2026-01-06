@@ -23,3 +23,11 @@ This plugin integrates XLNet into the BioLM framework, enabling:
    ```bash
    poetry run biolm install-plugin https://github.com/dieterich-lab/rna_protein_xlnet.git
    ```
+
+## Developer install
+
+If you are working on the XLNet plugin itself, keep the framework dependencies clean by pointing BioLM at your local checkout:
+
+```bash
+poetry run biolm develop-plugin /path/to/rna_protein_xlnet
+```
