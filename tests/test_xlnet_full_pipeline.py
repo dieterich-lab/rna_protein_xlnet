@@ -18,6 +18,12 @@ import pytest
 
 logging.basicConfig(level=logging.DEBUG)
 
+DATA_SOURCE_OVERRIDES = [
+    "data_source.idpos=1",
+    "data_source.labelpos=2",
+    "data_source.seqpos=1",
+]
+
 
 def debug_log(msg):
     """Print debug message to stdout for test visibility."""
@@ -120,6 +126,7 @@ def test_xlnet_full_pipeline(tiny_dataset):
             f"data_source.filepath={tiny_dataset}/train.txt",
             f"outputpath={output_dir}",
             "mode=tokenize",
+            *DATA_SOURCE_OVERRIDES,
             "model=xlnet",
             "tokenization.vocabsize=100",
             "training.num_epochs=1",
@@ -130,7 +137,8 @@ def test_xlnet_full_pipeline(tiny_dataset):
         debug_log("✓ Tokenization completed")
 
         # Verify tokenizer was created
-        tokenizer_file = output_dir / "tokenizer.json"
+        tokenizer_dir = output_dir / "tokenize"
+        tokenizer_file = tokenizer_dir / "tokenizer.json"
         assert tokenizer_file.exists(), f"Tokenizer not found at {tokenizer_file}"
         debug_log(f"✓ Tokenizer created at {tokenizer_file}")
 
@@ -145,6 +153,7 @@ def test_xlnet_full_pipeline(tiny_dataset):
             f"data_source.filepath={tiny_dataset}/train.txt",
             f"outputpath={output_dir}",
             "mode=pre-train",
+            *DATA_SOURCE_OVERRIDES,
             "model=xlnet",
             "training.num_epochs=1",
             "+training.blocksize=512",
@@ -177,6 +186,7 @@ def test_xlnet_full_pipeline(tiny_dataset):
             f"data_source.filepath={tiny_dataset}/train.txt",
             f"outputpath={output_dir}",
             "mode=fine-tune",
+            *DATA_SOURCE_OVERRIDES,
             "model=xlnet",
             "task=regression",
             "training.num_epochs=1",

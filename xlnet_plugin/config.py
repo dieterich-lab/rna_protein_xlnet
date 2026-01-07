@@ -43,7 +43,6 @@ def get_xlnet_config():
         weight_decay=0.0,
         special_tokenizer_for_trainer_cls=None,
     )
-
     # Make this the active configuration in the framework
     PluginManager.set_config(config)
 
